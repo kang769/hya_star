@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <!-- Define pi constant for use in the file -->
+    <xacro:property name="pi" value="3.1415926535897931" />
+    
+    <!-- Define the various namespaces needed -->
+    <xacro:property name="sensor_namespace" value="" />
+    <xacro:property name="camera_namespace" value="" />
+    
+    <!-- Include engine macros -->
+    <xacro:include filename="$(find hybrid_a_star)/model/ship_model/wamv_description/urdf/thrusters/engine.xacro"/>
+    
+    <!-- Simplified versions of components without complex visuals -->
+    <!-- Add engines with propellers -->
+    <xacro:engine prefix="left" position="-2.25 1.0 0.25" orientation="0 0 0"/>
+    <xacro:engine prefix="right" position="-2.25 -1.0 0.25" orientation="0 0 0"/>
+    
+    <!-- Add simple sensors using basic shapes -->
+    
+    <!-- 3D LiDAR -->
+    <link name="${namespace}/lidar_wamv_link">
+      <visual>
+        <geometry>
+          <cylinder radius="0.05" length="0.1"/>
+        </geometry>
+        <material name="lidar_material">
+          <color rgba="0.1 0.1 0.1 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.05" length="0.1"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      </inertial>
+    </link>
+    
+    <joint name="${namespace}/lidar_wamv_joint" type="fixed">
+      <origin xyz="0.7 0 1.8" rpy="0 0 0"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/lidar_wamv_link"/>
+    </joint>
+    
+    <!-- Front Camera -->
+    <link name="${namespace}/front_camera_link">
+      <visual>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+        <material name="camera_material">
+          <color rgba="0.2 0.2 0.2 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.3"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+    </link>
+    
+    <joint name="${namespace}/front_camera_joint" type="fixed">
+      <origin xyz="0.75 0 1.7" rpy="0 0 0"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/front_camera_link"/>
+    </joint>
+    
+    <!-- Left Camera -->
+    <link name="${namespace}/left_camera_link">
+      <visual>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+        <material name="camera_material">
+          <color rgba="0.2 0.2 0.2 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.3"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+    </link>
+    
+    <joint name="${namespace}/left_camera_joint" type="fixed">
+      <origin xyz="0.75 0.3 1.7" rpy="0 0 ${pi/6}"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/left_camera_link"/>
+    </joint>
+    
+    <!-- Right Camera -->
+    <link name="${namespace}/right_camera_link">
+      <visual>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+        <material name="camera_material">
+          <color rgba="0.2 0.2 0.2 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.3"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+    </link>
+    
+    <joint name="${namespace}/right_camera_joint" type="fixed">
+      <origin xyz="0.75 -0.3 1.7" rpy="0 0 ${-pi/6}"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/right_camera_link"/>
+    </joint>
+    
+    <!-- GPS -->
+    <link name="${namespace}/gps_wamv_link">
+      <visual>
+        <geometry>
+          <cylinder radius="0.05" length="0.1"/>
+        </geometry>
+        <material name="gps_material">
+          <color rgba="0.8 0.8 0.8 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.05" length="0.1"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.5"/>
+        <inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+      </inertial>
+    </link>
+    
+    <joint name="${namespace}/gps_wamv_joint" type="fixed">
+      <origin xyz="0.3 0 1.9" rpy="0 0 0"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/gps_wamv_link"/>
+    </joint>
+    
+    <!-- IMU -->
+    <link name="${namespace}/imu_wamv_link">
+      <visual>
+        <geometry>
+          <box size="0.1 0.1 0.05"/>
+        </geometry>
+        <material name="imu_material">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.1 0.1 0.05"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.5"/>
+        <inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+      </inertial>
+    </link>
+    
+    <joint name="${namespace}/imu_wamv_joint" type="fixed">
+      <origin xyz="0.3 0 1.6" rpy="0 0 0"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/imu_wamv_link"/>
+    </joint>
+</robot> 
