@@ -59,6 +59,8 @@ private:
     void PublishVehiclePath(const VectorVec3d &path, double width,
                             double length, unsigned int vehicle_interval);
 
+    void PublishOptimizedPath(const VectorVec3d &path);
+
 private:
     std::shared_ptr<HybridAStar> kinodynamic_astar_searcher_ptr_;
     std::shared_ptr<CostMapSubscriber> costmap_sub_ptr_;

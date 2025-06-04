@@ -32,6 +32,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
+#include "hybrid_a_star/trajectory_optimizer.h"
 
 __attribute__((unused)) double Mod2Pi(const double &x) {
     double v = fmod(x, 2 * M_PI);
@@ -67,6 +68,7 @@ HybridAStarFlow::HybridAStarFlow(ros::NodeHandle &nh) {
     path_pub_ = nh.advertise<nav_msgs::Path>("searched_path", 1);
     searched_tree_pub_ = nh.advertise<visualization_msgs::Marker>("searched_tree", 1);
     vehicle_path_pub_ = nh.advertise<visualization_msgs::MarkerArray>("vehicle_path", 1);
+    optimized_path_pub_ = nh.advertise<nav_msgs::Path>("optimized_path", 1);
 
     has_map_ = false;
 }
@@ -122,15 +124,62 @@ void HybridAStarFlow::Run() {
         );
 
         if (kinodynamic_astar_searcher_ptr_->Search(start_state, goal_state)) {
-            auto path = kinodynamic_astar_searcher_ptr_->GetPath();
-            PublishPath(path);
-            PublishVehiclePath(path, 4.0, 2.0, 5u);
+            auto original_path = kinodynamic_astar_searcher_ptr_->GetPath();
+            
+            PublishPath(original_path);
+            
+            TrajectoryOptimizer optimizer;
+            
+            auto check_collision = [this](double x, double y, double theta) -> bool {
+                return this->kinodynamic_astar_searcher_ptr_->CheckCollision(x, y, theta);
+            };
+            
+            auto nearest_obstacle = [this](double x, double y) -> Vec2d {
+                double min_dist = std::numeric_limits<double>::max();
+                Vec2d nearest_point(x, y);
+                
+                const double search_radius = 10.0;
+                const double step = this->kinodynamic_astar_searcher_ptr_->GetMapGridResolution();
+                
+                for (double dx = -search_radius; dx <= search_radius; dx += step) {
+                    for (double dy = -search_radius; dy <= search_radius; dy += step) {
+                        double nx = x + dx;
+                        double ny = y + dy;
+                        
+                        Vec2i grid_index = this->kinodynamic_astar_searcher_ptr_->Coordinate2MapGridIndex(Vec2d(nx, ny));
+                        if (this->kinodynamic_astar_searcher_ptr_->HasObstacle(grid_index)) {
+                            double dist = std::sqrt(dx*dx + dy*dy);
+                            if (dist < min_dist) {
+                                min_dist = dist;
+                                nearest_point = Vec2d(nx, ny);
+                            }
+                        }
+                    }
+                }
+                
+                return nearest_point;
+            };
+            
+            VectorVec3d path_to_publish;
+            
+            if (original_path.size() > 4) {
+                ROS_INFO("路径优化中...");
+                path_to_publish = optimizer.Optimize(check_collision, nearest_obstacle, original_path);
+                ROS_INFO("路径优化完成，优化前路径点数：%zu，优化后路径点数：%zu", original_path.size(), path_to_publish.size());
+                
+                PublishOptimizedPath(path_to_publish);
+            } else {
+                ROS_WARN("路径点数量不足，使用原始路径");
+                path_to_publish = original_path;
+            }
+            
+            PublishVehiclePath(path_to_publish, 4.0, 2.0, 5u);
             PublishSearchedTree(kinodynamic_astar_searcher_ptr_->GetSearchedTree());
 
             nav_msgs::Path path_ros;
             geometry_msgs::PoseStamped pose_stamped;
 
-            for (const auto &pose: path) {
+            for (const auto &pose: path_to_publish) {
                 pose_stamped.header.frame_id = "world";
                 pose_stamped.pose.position.x = pose.x();
                 pose_stamped.pose.position.y = pose.y();
@@ -164,8 +213,6 @@ void HybridAStarFlow::Run() {
             }
         }
 
-        // debug
-//        std::cout << "visited nodes: " << kinodynamic_astar_searcher_ptr_->GetVisitedNodesNumber() << std::endl;
         kinodynamic_astar_searcher_ptr_->Reset();
     }
 }
@@ -280,4 +327,24 @@ void HybridAStarFlow::PublishSearchedTree(const VectorVec4d &searched_tree) {
     }
 
     searched_tree_pub_.publish(tree_list);
+}
+
+void HybridAStarFlow::PublishOptimizedPath(const VectorVec3d &path) {
+    nav_msgs::Path nav_path;
+
+    geometry_msgs::PoseStamped pose_stamped;
+    for (const auto &pose: path) {
+        pose_stamped.header.frame_id = "world";
+        pose_stamped.pose.position.x = pose.x();
+        pose_stamped.pose.position.y = pose.y();
+        pose_stamped.pose.position.z = 0.0;
+        pose_stamped.pose.orientation = tf::createQuaternionMsgFromYaw(pose.z());
+
+        nav_path.poses.emplace_back(pose_stamped);
+    }
+
+    nav_path.header.frame_id = "world";
+    nav_path.header.stamp = timestamp_;
+
+    optimized_path_pub_.publish(nav_path);
 }
