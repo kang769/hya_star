@@ -99,7 +99,34 @@ public:
                                               path_matrix(2 * i + 1, 0), theta));
         }
 
-        return optimized_path;
+        // 检查优化后的路径是否有后退动作
+        VectorVec3d forward_only_path;
+        forward_only_path.push_back(optimized_path[0]); // 添加第一个点
+        
+        for (size_t i = 1; i < optimized_path.size(); ++i) {
+            double dx = optimized_path[i].x() - optimized_path[i-1].x();
+            double dy = optimized_path[i].y() - optimized_path[i-1].y();
+            double theta = optimized_path[i-1].z();
+            
+            // 计算前一个点的朝向向量
+            double dir_x = cos(theta);
+            double dir_y = sin(theta);
+            
+            // 计算位移向量与朝向向量的点积
+            double dot_product = dx * dir_x + dy * dir_y;
+            
+            // 只添加前进的点
+            if (dot_product >= 0) {
+                forward_only_path.push_back(optimized_path[i]);
+            }
+        }
+        
+        // 如果过滤后的路径太短，就返回原始路径
+        if (forward_only_path.size() < 2) {
+            return path;
+        }
+
+        return forward_only_path;
     }
 
 private:

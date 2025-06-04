@@ -433,33 +433,17 @@ double HybridAStar::ComputeH(const StateNode::Ptr &current_node_ptr,
 double HybridAStar::ComputeG(const StateNode::Ptr &current_node_ptr,
                              const StateNode::Ptr &neighbor_node_ptr) const {
     double g;
-    if (neighbor_node_ptr->direction_ == StateNode::FORWARD) {
-        if (neighbor_node_ptr->steering_grade_ != current_node_ptr->steering_grade_) {
-            if (neighbor_node_ptr->steering_grade_ == 0) {
-                g = segment_length_ * steering_change_penalty_;
-            } else {
-                g = segment_length_ * steering_change_penalty_ * steering_penalty_;
-            }
+    if (neighbor_node_ptr->steering_grade_ != current_node_ptr->steering_grade_) {
+        if (neighbor_node_ptr->steering_grade_ == 0) {
+            g = segment_length_ * steering_change_penalty_;
         } else {
-            if (neighbor_node_ptr->steering_grade_ == 0) {
-                g = segment_length_;
-            } else {
-                g = segment_length_ * steering_penalty_;
-            }
+            g = segment_length_ * steering_change_penalty_ * steering_penalty_;
         }
     } else {
-        if (neighbor_node_ptr->steering_grade_ != current_node_ptr->steering_grade_) {
-            if (neighbor_node_ptr->steering_grade_ == 0) {
-                g = segment_length_ * steering_change_penalty_ * reversing_penalty_;
-            } else {
-                g = segment_length_ * steering_change_penalty_ * steering_penalty_ * reversing_penalty_;
-            }
+        if (neighbor_node_ptr->steering_grade_ == 0) {
+            g = segment_length_;
         } else {
-            if (neighbor_node_ptr->steering_grade_ == 0) {
-                g = segment_length_ * reversing_penalty_;
-            } else {
-                g = segment_length_ * steering_penalty_ * reversing_penalty_;
-            }
+            g = segment_length_ * steering_penalty_;
         }
     }
 
@@ -708,6 +692,32 @@ bool HybridAStar::AnalyticExpansions(const StateNode::Ptr &current_node_ptr,
     VectorVec3d rs_path_poses = rs_path_ptr_->GetRSPath(current_node_ptr->state_,
                                                         goal_node_ptr->state_,
                                                         move_step_size_, length);
+
+    // 检查路径中是否有后退动作
+    bool has_backward_motion = false;
+    for (size_t i = 1; i < rs_path_poses.size(); ++i) {
+        double dx = rs_path_poses[i].x() - rs_path_poses[i-1].x();
+        double dy = rs_path_poses[i].y() - rs_path_poses[i-1].y();
+        double theta = rs_path_poses[i-1].z();
+        
+        // 计算前一个点的朝向向量
+        double dir_x = cos(theta);
+        double dir_y = sin(theta);
+        
+        // 计算位移向量与朝向向量的点积
+        double dot_product = dx * dir_x + dy * dir_y;
+        
+        // 如果点积为负，说明是后退动作
+        if (dot_product < 0) {
+            has_backward_motion = true;
+            break;
+        }
+    }
+    
+    // 如果有后退动作，拒绝使用这条路径
+    if (has_backward_motion) {
+        return false;
+    }
 
     for (const auto &pose: rs_path_poses)
         if (BeyondBoundary(pose.head(2)) || !CheckCollision(pose.x(), pose.y(), pose.z())) {
