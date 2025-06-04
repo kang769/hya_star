@@ -1,0 +1,34 @@
+# 忽略 ROS 编译目录
+build/
+devel/
+install/
+
+# 忽略 Catkin 中间文件
+.catkin_workspace
+catkin_make.cache
+catkin_generated/
+
+# 忽略 CMake 相关文件
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# 忽略可执行文件和库文件
+*.out
+*.so
+*.pyc
+__pycache__/
+
+# 忽略日志和配置文件
+*.log
+*.config
+*.stamp
+
+# 忽略 GTest 测试文件
+gtest/
+
+# 忽略特定修改的文件（根据你的项目调整）
+src/Hybrid_A_Star/include/hybrid_a_star/trajectory_optimizer.h
+src/Hybrid_A_Star/src/hybrid_a_star.cpp
