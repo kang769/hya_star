@@ -32,6 +32,7 @@
 #include "costmap_subscriber.h"
 #include "init_pose_subscriber.h"
 #include "goal_pose_subscriber.h"
+#include "path_analyzer.h"
 
 #include <ros/ros.h>
 
@@ -83,6 +84,8 @@ private:
     ros::Time timestamp_;
 
     bool has_map_{};
+
+    std::shared_ptr<PathAnalyzer> path_analyzer_ptr_;
 };
 
 #endif //HYBRID_A_STAR_HYBRID_A_STAR_FLOW_H

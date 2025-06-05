@@ -59,6 +59,7 @@ add_library(
     src/init_pose_subscriber.cpp
     src/hybrid_a_star.cpp
     src/hybrid_a_star_flow.cpp
+    src/path_analyzer.cpp
 )
 
 target_link_libraries(
@@ -69,3 +70,4 @@ target_link_libraries(
 
 add_executable(run_hybrid_astar app/run_hybrid_astar.cpp)
 target_link_libraries(run_hybrid_astar PATH_SEARCHER_LIB)
+

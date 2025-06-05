@@ -177,10 +177,7 @@ Visualization Manager:
       Enabled: true
       History Length: 1
       Joints:
-        wamv/left_chasis_engine_joint:
-          Value: true
-        wamv/right_chasis_engine_joint:
-          Value: true
+        {}
       Name: Effort
       Queue Size: 10
       Robot Description: robot_description
@@ -200,61 +197,7 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        wamv/base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wamv/dummy_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/front_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/gps_wamv_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/imu_wamv_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/left_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/left_engine_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/left_propeller_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/lidar_wamv_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/right_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/right_engine_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wamv/right_propeller_link:
+        ground_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -293,7 +236,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 74.61428833007812
+      Distance: 60.18785095214844
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -301,17 +244,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 15.183159828186035
-        Y: -4.6652421951293945
-        Z: 10.92339038848877
+        X: 25.952014923095703
+        Y: 22.503555297851562
+        Z: 14.680817604064941
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.399796485900879
+      Pitch: 1.5597963333129883
       Target Frame: <Fixed Frame>
-      Yaw: 1.7385482788085938
+      Yaw: 4.696715831756592
     Saved: ~
 Window Geometry:
   Displays:

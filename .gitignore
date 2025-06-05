@@ -30,5 +30,4 @@ __pycache__/
 gtest/
 
 # 忽略特定修改的文件（根据你的项目调整）
-src/Hybrid_A_Star/include/hybrid_a_star/trajectory_optimizer.h
-src/Hybrid_A_Star/src/hybrid_a_star.cpp
+.vscode/

@@ -33,6 +33,7 @@
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
 #include "hybrid_a_star/trajectory_optimizer.h"
+#include "hybrid_a_star/path_analyzer.h"
 
 __attribute__((unused)) double Mod2Pi(const double &x) {
     double v = fmod(x, 2 * M_PI);
@@ -61,6 +62,15 @@ HybridAStarFlow::HybridAStarFlow(ros::NodeHandle &nh) {
             steering_angle, steering_angle_discrete_num, segment_length, segment_length_discrete_num, wheel_base,
             steering_penalty, reversing_penalty, steering_change_penalty, shot_distance
     );
+    
+    // 初始化路径分析器
+    path_analyzer_ptr_ = std::make_shared<PathAnalyzer>(kinodynamic_astar_searcher_ptr_);
+    
+    // 设置CSV文件路径，使用参数服务器中的配置或默认路径
+    std::string csv_file_path = nh.param<std::string>("path_analyzer/csv_file_path", 
+        "/home/jjk/code_hub/hybrid_a_star_ws/src/Hybrid_A_Star/data/path_analysis.csv");
+    path_analyzer_ptr_->SetCsvFilePath(csv_file_path);
+    
     costmap_sub_ptr_ = std::make_shared<CostMapSubscriber>(nh, "/map", 1);
     init_pose_sub_ptr_ = std::make_shared<InitPoseSubscriber2D>(nh, "/initialpose", 1);
     goal_pose_sub_ptr_ = std::make_shared<GoalPoseSubscriber2D>(nh, "/move_base_simple/goal", 1);
@@ -160,26 +170,29 @@ void HybridAStarFlow::Run() {
                 return nearest_point;
             };
             
-            VectorVec3d path_to_publish;
+            VectorVec3d optimized_path;
             
             if (original_path.size() > 4) {
                 ROS_INFO("路径优化中...");
-                path_to_publish = optimizer.Optimize(check_collision, nearest_obstacle, original_path);
-                ROS_INFO("路径优化完成，优化前路径点数：%zu，优化后路径点数：%zu", original_path.size(), path_to_publish.size());
+                optimized_path = optimizer.Optimize(check_collision, nearest_obstacle, original_path);
+                ROS_INFO("路径优化完成，优化前路径点数：%zu，优化后路径点数：%zu", original_path.size(), optimized_path.size());
                 
-                PublishOptimizedPath(path_to_publish);
+                PublishOptimizedPath(optimized_path);
+                
+                // 分析路径并生成CSV文件
+                path_analyzer_ptr_->AnalyzePaths(original_path, optimized_path);
             } else {
                 ROS_WARN("路径点数量不足，使用原始路径");
-                path_to_publish = original_path;
+                optimized_path = original_path;
             }
             
-            PublishVehiclePath(path_to_publish, 4.0, 2.0, 5u);
+            PublishVehiclePath(optimized_path, 4.0, 2.0, 5u);
             PublishSearchedTree(kinodynamic_astar_searcher_ptr_->GetSearchedTree());
 
             nav_msgs::Path path_ros;
             geometry_msgs::PoseStamped pose_stamped;
 
-            for (const auto &pose: path_to_publish) {
+            for (const auto &pose: optimized_path) {
                 pose_stamped.header.frame_id = "world";
                 pose_stamped.pose.position.x = pose.x();
                 pose_stamped.pose.position.y = pose.y();
