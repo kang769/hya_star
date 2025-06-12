@@ -31,6 +31,6 @@ The original copyright notice and license text are as follows:
  ******************************************************************************/
 
 This project has made the following modifications to the original code:
-[List your modifications here]
+Added the feature to disable backward node expansion, optimized the path, and compared key parameters before and after the optimization.
 
 This project also adheres to the 3 - clause BSD license.
